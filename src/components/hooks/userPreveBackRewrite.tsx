@@ -3,9 +3,10 @@ import { useEffect } from 'react';
 
 interface UsePreventBackProps {
     shouldPreventBack?: boolean;
+    backUrl?: string;
 }
 
-export function usePreventBack({ shouldPreventBack = true }: UsePreventBackProps) {
+export function usePreventBack({ shouldPreventBack = true, backUrl }: UsePreventBackProps) {
     const router = useRouter();
 
     useEffect(() => {
@@ -13,17 +14,19 @@ export function usePreventBack({ shouldPreventBack = true }: UsePreventBackProps
 
         // 1. Prevent refresh / tab close
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            event.preventDefault();
-            // event.returnValue = ''; // Triggers the confirmation dialog
+            // event.preventDefault();
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
 
         // 2. Prevent browser back/forward
         const handlePopState = () => {
-            // console.log('handlePopState: history', history);
-            router.push(router.asPath)
-            history.go(1);
-            // router.reload(); // Reloads the current page to prevent back navigation
+            if (backUrl) {
+                router.replace(backUrl)
+            } else {
+                router.push(router.asPath).then(() => {
+                    history.go(1);
+                });
+            }
         };
         window.addEventListener('popstate', handlePopState);
 
@@ -42,36 +45,7 @@ export function usePreventBack({ shouldPreventBack = true }: UsePreventBackProps
 
             // Restore default beforePopState handler
             router.beforePopState(() => true);
+
         };
-    }, [router, shouldPreventBack]);
+    }, [router, shouldPreventBack, backUrl]);
 }
-
-// export function usePreventBack({ shouldPreventBack = true }: UsePreventBackProps) {
-//     const router = useRouter();
-
-//     useEffect(() => {
-//         if (!shouldPreventBack) return;
-
-//         // Rewrite history so back button won't leave this page
-//         history.pushState(null, '', location.href);
-
-//         const handlePopState = () => {
-//             history.pushState(null, '', location.href);
-//             console.log('history', history)
-//         };
-
-//         window.addEventListener('popstate', handlePopState);
-
-//         // Prevent refresh / tab close
-//         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-//             event.preventDefault();
-//             event.returnValue = '';
-//         };
-//         window.addEventListener('beforeunload', handleBeforeUnload);
-
-//         return () => {
-//             window.removeEventListener('popstate', handlePopState);
-//             window.removeEventListener('beforeunload', handleBeforeUnload);
-//         };
-//     }, [shouldPreventBack]);
-// }
