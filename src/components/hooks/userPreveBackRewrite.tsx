@@ -21,6 +21,8 @@ export function usePreventBack({ shouldPreventBack = true, backUrl }: UsePrevent
         // 2. Prevent browser back/forward
         const handlePopState = () => {
             if (backUrl) {
+                // TODO: miss implement detect if backUrl is not current page and forward
+
                 router.replace(backUrl)
             } else {
                 router.push(router.asPath).then(() => {
